@@ -21,8 +21,6 @@ import org.eclipse.microprofile.rest.client.RestClientDefinitionException;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import io.smallrye.faulttolerance.HystrixCommandBinding;
-
 @Path("/pulls")
 public class PullsResource {
 
@@ -35,6 +33,7 @@ public class PullsResource {
         long start = System.currentTimeMillis();
         JsonArray pulls = client.getPulls("open");
         System.out.println(pulls.size() + " pull requests received in " + TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - start) + " seconds");
+        
         JsonArrayBuilder filtered = Json.createArrayBuilder();
         for (JsonValue pull : pulls) {
             JsonObjectBuilder obj = Json.createObjectBuilder();
@@ -46,7 +45,6 @@ public class PullsResource {
         return filtered.build();
     }
 
-    @HystrixCommandBinding // TODO remove once ArC supports transitive interceptor bindings
     @RegisterRestClient
     @Produces(MediaType.APPLICATION_JSON)
     public interface GithubClient {
