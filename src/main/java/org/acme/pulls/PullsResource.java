@@ -1,12 +1,11 @@
-package com.github.mkouba.pulls;
+package org.acme.pulls;
 
 import java.net.URISyntaxException;
-import java.util.concurrent.TimeUnit;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
+import javax.json.JsonObject;
 import javax.json.JsonValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -25,45 +24,38 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 public class PullsResource {
 
     @RestClient
-    GithubClient client;
+    PullsClient client;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public JsonArray getPulls() throws IllegalStateException, RestClientDefinitionException, URISyntaxException {
-        long start = System.currentTimeMillis();
         JsonArray pulls = client.getPulls("open");
-        System.out.println(pulls.size() + " pull requests received in " + TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - start) + " seconds");
-        
         JsonArrayBuilder filtered = Json.createArrayBuilder();
         for (JsonValue pull : pulls) {
-            JsonObjectBuilder obj = Json.createObjectBuilder();
-            obj.add("title", pull.asJsonObject().get("title"));
-            obj.add("html_url", pull.asJsonObject().get("html_url"));
-            obj.add("user_login", pull.asJsonObject().get("user").asJsonObject().get("login"));
-            filtered.add(obj);
+            JsonObject pullJson = pull.asJsonObject();
+            filtered.add(Json.createObjectBuilder().add("title", pullJson.get("title")).add("url", pullJson.get("html_url")));
         }
         return filtered.build();
     }
 
     @RegisterRestClient
-    @Produces(MediaType.APPLICATION_JSON)
-    public interface GithubClient {
+    public interface PullsClient {
 
-        @Fallback(GithubFallback.class)
+        @Fallback(PullsFallback.class)
         @GET
         @Path("/pulls")
         JsonArray getPulls(@QueryParam("state") String state);
 
     }
-    
-    public static class GithubFallback implements FallbackHandler<JsonArray> {
+
+    public static class PullsFallback implements FallbackHandler<JsonArray> {
 
         @Override
         public JsonArray handle(ExecutionContext context) {
-            System.out.println("GitHub not available!");
+            System.out.println("GITHUB NOT AVAILABLE!");
             return Json.createArrayBuilder().build();
         }
-        
+
     }
-    
+
 }
