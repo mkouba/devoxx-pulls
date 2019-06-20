@@ -1,21 +1,23 @@
 package org.acme.pulls;
 
-import javax.annotation.Priority;
-import javax.enterprise.inject.Alternative;
-import javax.inject.Singleton;
+import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 
 import org.acme.pulls.PullsResource.PullsClient;
+import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+import io.quarkus.test.Mock;
+
 @RestClient
-@Alternative
-@Priority(1)
-@Singleton
+@Mock
 public class MockPullsClient implements PullsClient {
 
+    @Inject
+    Config config;
+    
     @Override
     public JsonArray getPulls(String state) {
         JsonArrayBuilder dummy = Json.createArrayBuilder();
